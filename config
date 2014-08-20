@@ -1,0 +1,5 @@
+#Default port for EOML is 7056
+Port: 7056
+#Provide the folder where the EOML server can find your music library
+#Make sure Permissions are OK
+LibraryPath: ~/Music
