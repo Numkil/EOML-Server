@@ -79,7 +79,7 @@ sub processRequest{
     if($typebits =~ /01/){
         $connectionsocket->send(&respondWithList($artist, $album, $track));
     }elsif($typebits =~ /10/){
-        return &streamMusicFile($connectionsocket, $artist, $album, $track, $byterange);
+        &streamMusicFile($connectionsocket, $artist, $album, $track, $byterange);
     }
     #Notify client response has been send
     shutdown($connectionsocket, 1);
@@ -129,7 +129,7 @@ sub respondWithList{
 
 sub streamMusicFile{
     my ($socket, $artist, $album, $track, $byterange) = @_;
-    if(not $artist || not $album || not $track){
+    if($artist eq "" || $album eq "" || $track eq ""){
         $socket->send(&NotSpecificEnough());
         return;
     }
