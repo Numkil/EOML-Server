@@ -2,7 +2,6 @@
 use strict;
 use warnings;
 use IO::Socket;
-use Net::RTP;
 use File::Find::Rule;
 use threads;
 use FindBin qw/$RealBin/;
@@ -11,9 +10,9 @@ use EOMLResponses;
 our $librarypath;
 
 sub main{
-    open(DAT, 'config') || die("Could not find the configuration file\n");
-    my @params = <DAT>;
-    close(DAT);
+    open(my $DAT, "<", 'config') || die("Could not find the configuration file\n");
+    my @params = <$DAT>;
+    close($DAT);
     my $port;
 
     foreach (@params){
@@ -24,8 +23,8 @@ sub main{
             $librarypath = $1;
         }
     }
-    $librarypath =~ s/\~/$ENV{HOME}/e; #Convert shell terminology
-    if(! -d $librarypath){
+    $librarypath =~ s/\~/$ENV{HOME}/e; #Converting typical ~ into /home/***/
+    if(not -d $librarypath){
         die("The Library path provided in config does not exist");
     }else{
         &startConnection($port);
@@ -37,30 +36,27 @@ sub startConnection{
     my $welcomesocket = new IO::Socket::INET(
         LocalPort => $port,
         Proto => 'tcp',
-        Listen => '5',
-        Reuse => 1,
+        Listen => '500', #Max 500 users
+        Reuse => 1, #Free port after finishing
     );
     die "Could not create socket: $!\n" unless $welcomesocket;
     print "Server ready on port: $port";
 
     while(1){
-        my $connectionsocket = $welcomesocket->accept();
-
-        # read packets from the established connection
-        my $request = "";
-        $connectionsocket->recv($request, 1024);
-
-        my $response = &processRequest($request);
-        $connectionsocket->send($response);
-
-        #Notify client response has been send
-        shutdown($connectionsocket, 1);
+        my $connectionsocket = $welcomesocket->accept(); #Wait for request
+        my $responsethread = threads->create(\&processRequest, $connectionsocket); #Dispatch it to new thread
+        $responsethread->detach(); #Let it run we don't care anymore we wait for next request
     }
     $welcomesocket->close();
 }
 
 sub processRequest{
-    my @packetfields = split(/\Q\n/, shift);
+    my ($connectionsocket) = @_;
+
+    # read packets from the established connection
+    my $request = "";
+    $connectionsocket->recv($request, 1024);
+    my @packetfields = split(/\Q\n/, $request); #split string on the \n sign
 
     #Request Packet Layout
     #
@@ -81,10 +77,12 @@ sub processRequest{
     $byterange =~ s/ByteRange:\ (.*)$/$1/e;
 
     if($typebits =~ /01/){
-        return &respondWithList($artist, $album, $track);
+        $connectionsocket->send(&respondWithList($artist, $album, $track));
     }elsif($typebits =~ /10/){
-        return &prepareForStream($artist, $album, $track, $byterange);
+        return &streamMusicFile($connectionsocket, $artist, $album, $track, $byterange);
     }
+    #Notify client response has been send
+    shutdown($connectionsocket, 1);
 }
 
 sub respondWithList{
@@ -129,38 +127,22 @@ sub respondWithList{
     }
 }
 
-sub prepareForStream{
-    my ($artist, $album, $track, $byterange) = @_;
+sub streamMusicFile{
+    my ($socket, $artist, $album, $track, $byterange) = @_;
     if(not $artist || not $album || not $track){
-        return &NotSpecificEnough();
+        $socket->send(&NotSpecificEnough());
+        return;
     }
     if(not File::Find::Rule->exists->in($librarypath."/$artist/$album/$track")){
-        return &QueryNotFound($artist, $album, $track);
+        $socket->send(&QueryNotFound($artist, $album, $track));
+        return;
     }
-    my $streamsocket = new IO::Socket::INET(
-        Proto=>'tcp',
-        Listen=>'1',
-        Reuse=>'1',
-        LocalPort=>'0',
-    );
-    die "Could not create socket: $!\n" unless $streamsocket;
-    print "Streaming on port: ",$streamsocket->sockport();
-    my $streamthread = threads->create(\&streamMusic, $streamsocket, "$librarypath/$artist/$album/$track");
-    $streamthread->detach();
-    return &ReadyForTransmission($artist, $album, $track, $streamsocket->sockport());
-}
-
-sub streamMusic{
-    my ($socket, $musicpath) = @_;
-    my $streamer = $socket->accept();
-    open(DAT, $musicpath);
-    my @song = <DAT>;
-    close(DAT);
+    open(my $DAT, "<", $librarypath."/$artist/$album/$track");
+    my @song = <$DAT>;
+    close($DAT);
     foreach  (@song) {
-        $streamer->send($_);
+        $socket->send($_);
     }
-    #Notify client response has been send
-    shutdown($streamer, 1);
 }
 
 &main();

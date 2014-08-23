@@ -9,8 +9,7 @@ Installation
 ------------
 **Required Packages:**
 
-    Perl::IO::Socket, Perl::Net::RTP, perl::File::Find::Rule, Perl::Threads,
-    Perl::FindBin
+    Perl::IO::Socket, perl::File::Find::Rule, Perl::Threads, Perl::FindBin
 
 **Instructions**
 

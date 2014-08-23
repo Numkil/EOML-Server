@@ -55,20 +55,21 @@ END_200
     return $code200;
 }
 
-sub ReadyForTransmission{
-    my ($artist, $album, $track, $port) = @_;
+#Decrepated at the moment. Might come back in different format
+#sub ReadyForTransmission{
+    #my ($artist, $album, $track, $port) = @_;
 
-    #Packet
-    my $code201 = <<"END_201";
-Code: 201 Ready for transmission.
-Artist: $artist
-Album: $album
-Track: $track
-Port: $port
-END_201
+    ##Packet
+    #my $code201 = <<"END_201";
+#Code: 201 Ready for transmission.
+#Artist: $artist
+#Album: $album
+#Track: $track
+#Port: $port
+#END_201
 
-    return $code201;
-}
+    #return $code201;
+#}
 
 sub TrackInfo{
     my ($artist, $album, $track, $tags) = @_;
