@@ -138,11 +138,9 @@ sub streamMusicFile{
         return;
     }
     open(my $DAT, "<", $librarypath."/$artist/$album/$track");
-    my @song = <$DAT>;
+    read($DAT, my $song, -s "$librarypath/$artist/$album/$track");
     close($DAT);
-    foreach  (@song) {
-        $socket->send($_);
-    }
+    $socket->send($song);
 }
 
 &main();
