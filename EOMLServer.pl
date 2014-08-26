@@ -60,7 +60,7 @@ sub processRequest{
 
     #Request Packet Layout
     #
-    #0   TypeBits: 01 or 10 # Play - List
+    #0   TypeBits: 01 or 10 # List - Play
     #1   Artist:
     #2   Album:
     #3   Track:
