@@ -40,7 +40,7 @@ sub startConnection{
         Reuse => 1, #Free port after finishing
     );
     die "Could not create socket: $!\n" unless $welcomesocket;
-    print "Server ready on port: $port";
+    print "Server ready on port: $port\n";
 
     while(1){
         my $connectionsocket = $welcomesocket->accept(); #Wait for request
@@ -56,7 +56,7 @@ sub processRequest{
     # read packets from the established connection
     my $request = "";
     $connectionsocket->recv($request, 1024);
-    my @packetfields = split(/\Q\n/, $request); #split string on the \n sign
+    my @packetfields = split(/\n/, $request); #split string on the \n sign
 
     #Request Packet Layout
     #
