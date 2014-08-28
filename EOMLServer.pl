@@ -123,7 +123,7 @@ sub respondWithList{
         my $taginfo = "$librarypath/$artist/$album/$track";
         $taginfo =~ s/\ /\\\ /g;
         $taginfo = `taginfo $taginfo`;
-        return &QueryFound($artist, $album, $track, $taginfo);
+        return &TrackInfo($artist, $album, $track, $taginfo);
     }
 }
 
