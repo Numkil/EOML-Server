@@ -10,7 +10,7 @@ qw(
 QueryNotFound
 NotSpecificEnough
 QueryFound
-ReadyForTransmission
+TrackInfo
 );
 
 sub QueryNotFound{
