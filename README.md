@@ -1,6 +1,7 @@
 EOML-Server
 ===========
-W.I.P: Just slowly adding stuff
+    W.I.P: Just slowly adding stuff.
+
 Very simple and easy to understand/use directory service for music libraries.
 It's just an exercise for me to learn about threading and sockets, so it is not
 meant for actual intensive deployment.
