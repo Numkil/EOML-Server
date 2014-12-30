@@ -68,6 +68,7 @@ sub processRequest{
 
     my $typebits = shift @packetfields;
     my $artist = shift @packetfields;
+    #Strip away any unnecessary text from the request
     $artist =~ s/Artist:\ (.*?)$/$1/e;
     my $album = shift @packetfields;
     $album =~ s/Album:\ (.*)$/$1/e;
@@ -137,7 +138,8 @@ sub streamMusicFile{
         $socket->send(&QueryNotFound($artist, $album, $track));
         return;
     }
-    open(my $DAT, "<", $librarypath."/$artist/$album/$track");
+    #TODO: implement byterange
+    open(my $DAT, "<", $librarypath."/$artist/$album/$track") || $socket->send($!);
     read($DAT, my $song, -s "$librarypath/$artist/$album/$track");
     close($DAT);
     $socket->send($song);
